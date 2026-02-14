@@ -1,0 +1,36 @@
+name: daily-experiment-rollout
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-daily-experiment:
+    runs-on: ubuntu-latest
+    env:
+      EXPERIMENT_NETWORK: ${{ vars.EXPERIMENT_NETWORK || 'baseSepolia' }}
+      CONTROLLER_ADDRESS: ${{ vars.CONTROLLER_ADDRESS }}
+      BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+      BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: |
+          if [ "${EXPERIMENT_NETWORK}" = "base" ]; then
+            echo "RPC_URL=${BASE_MAINNET_RPC_URL}" >> "$GITHUB_ENV"
+          else
+            echo "RPC_URL=${BASE_SEPOLIA_RPC_URL}" >> "$GITHUB_ENV"
+          fi
+          npx hardhat run scripts/run-daily-experiment.js --network "${EXPERIMENT_NETWORK}"
+      - name: verify protocol health
+        env:
+          TOKEN_ADDRESS: ${{ vars.TOKEN_ADDRESS }}
+          VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
+          TEAM_WALLET: ${{ vars.TEAM_WALLET }}
+        run: npm run monitor

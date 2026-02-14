@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HyperLedger Labs — Daily Experiment Desk</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+    <script defer src="app.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+      :root {
+        --bg-deep: #041117;
+        --bg-mid: #061f28;
+        --ink: #e6eef3;
+        --accent: #00ffd5;
+        --spark: #8dff84;
+        --line: rgba(0, 255, 213, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: 'Space Mono', ui-monospace, monospace;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(0, 255, 213, 0.12), transparent 35%),
+          radial-gradient(circle at 80% 70%, rgba(141, 255, 132, 0.14), transparent 40%),
+          linear-gradient(120deg, #04111b, #061f28 40%, #040a10 100%);
+        overflow-x: hidden;
+      }
+
+      .noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 1px,
+          rgba(0, 255, 213, 0.04) 1px,
+          rgba(0, 255, 213, 0.04) 2px
+        );
+        opacity: 0.4;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.2rem 4rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 1rem;
+        background: rgba(4, 17, 23, 0.55);
+        backdrop-filter: blur(6px);
+      }
+
+      h1 {
+        font-family: 'Anton', Impact, sans-serif;
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        letter-spacing: 0.08rem;
+        margin: 0;
+        text-transform: uppercase;
+        text-shadow: 0 0 25px rgba(0, 255, 213, 0.35);
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0.75rem;
+        padding: 0.65rem 1rem;
+        cursor: pointer;
+        font: inherit;
+        transition: transform 150ms ease, box-shadow 150ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 30px rgba(0, 255, 213, 0.2);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.9rem;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(6, 35, 44, 0.85), rgba(4, 16, 23, 0.7));
+        border-radius: 0.9rem;
+        padding: 1rem;
+        min-height: 120px;
+        animation: rise 300ms ease both;
+      }
+
+      .card:nth-child(1) { animation-delay: 60ms; }
+      .card:nth-child(2) { animation-delay: 120ms; }
+      .card:nth-child(3) { animation-delay: 180ms; }
+      .card:nth-child(4) { animation-delay: 240ms; }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        color: var(--spark);
+        letter-spacing: 0.05rem;
+      }
+
+      .mono {
+        font-size: 1.2rem;
+        letter-spacing: 0.04rem;
+      }
+
+      .leaderboard {
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        background: rgba(4, 12, 17, 0.7);
+        padding: 1rem;
+        animation: rise 300ms ease 300ms both;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.65rem 0;
+        border-bottom: 1px dashed rgba(230, 238, 243, 0.2);
+      }
+
+      .row:last-child { border-bottom: none; }
+
+      .status {
+        color: #89ffd4;
+        font-size: 0.9rem;
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 700px) {
+        .container { padding: 1rem 0.9rem 3rem; }
+        header { padding: 0.8rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <main class="container">
+      <header>
+        <h1>Daily Game-Ledger Engine</h1>
+        <div>
+          <button id="connectButton">Connect Wallet</button>
+          <button id="refreshButton">Refresh</button>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Swap Rake</h2>
+          <div class="mono" id="swapRake">1% fixed</div>
+        </article>
+        <article class="card">
+          <h2>Total Locked Supply</h2>
+          <div class="mono" id="totalLocked">Loading…</div>
+        </article>
+        <article class="card">
+          <h2>Protocol Fee Balance</h2>
+          <div class="mono" id="protocolBalance">Loading…</div>
+        </article>
+        <article class="card">
+          <h2>Current Leaderboard</h2>
+          <div class="mono" id="leaderInfo">Loading…</div>
+        </article>
+      </section>
+
+      <section class="leaderboard">
+        <h2 style="margin-top: 0; color: var(--accent);">Top Stakers</h2>
+        <div id="leaderRows"></div>
+      </section>
+
+      <section class="card">
+        <h2>Your Position</h2>
+        <p class="status" id="positionInfo">Connect wallet to view stake data.</p>
+      </section>
+    </main>
+  </body>
+</html>

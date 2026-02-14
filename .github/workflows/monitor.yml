@@ -1,0 +1,23 @@
+name: zero-touch-monitor
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor-protocol:
+    runs-on: ubuntu-latest
+    env:
+      RPC_URL: ${{ secrets.MONITOR_RPC_URL }}
+      TOKEN_ADDRESS: ${{ vars.TOKEN_ADDRESS }}
+      VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
+      TEAM_WALLET: ${{ vars.TEAM_WALLET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run monitor

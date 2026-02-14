@@ -1,0 +1,19 @@
+{
+  "name": "agentic-token-lab",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "node scripts/deploy.js",
+    "experiment:daily": "node scripts/run-daily-experiment.js",
+    "monitor": "node scripts/monitor.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.1.0",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.0",
+    "hardhat": "^2.22.0"
+  }
+}
