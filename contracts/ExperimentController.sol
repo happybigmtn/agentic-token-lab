@@ -27,8 +27,7 @@ contract ExperimentController is Ownable {
         string note
     );
 
-    constructor(address token_, address vault_) {
-        _transferOwnership(msg.sender);
+    constructor(address token_, address vault_) Ownable(msg.sender) {
         require(token_ != address(0), "token=zero");
         require(vault_ != address(0), "vault=zero");
         token = token_;

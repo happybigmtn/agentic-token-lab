@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -258,15 +258,15 @@ contract StakeVault is Ownable, ReentrancyGuard {
             return current;
         }
 
-        uint256 i = maxEntries - 1;
-        while (i > 0 && candidateWeight > rankedWeights[i - 1]) {
-            ranked[i] = ranked[i - 1];
-            rankedWeights[i] = rankedWeights[i - 1];
-            i--;
+        uint256 insertIndex = maxEntries - 1;
+        while (insertIndex > 0 && candidateWeight > rankedWeights[insertIndex - 1]) {
+            ranked[insertIndex] = ranked[insertIndex - 1];
+            rankedWeights[insertIndex] = rankedWeights[insertIndex - 1];
+            insertIndex--;
         }
 
-        ranked[i] = candidate;
-        rankedWeights[i] = candidateWeight;
+        ranked[insertIndex] = candidate;
+        rankedWeights[insertIndex] = candidateWeight;
         return current;
     }
 }
